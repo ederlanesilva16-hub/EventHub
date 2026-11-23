@@ -85,12 +85,12 @@
         <section id="page-events" class="page">
           <div class="page-heading"><div><span class="eyebrow">GERENCIAMENTO</span><h1>Eventos</h1><p>Crie, edite e acompanhe seus eventos.</p></div><button class="btn btn-primary" data-action="new-event"><i class="bi bi-plus-lg"></i> Novo evento</button></div>
           <div class="filter-row"><div class="search-box"><i class="bi bi-search"></i><input id="eventSearch" placeholder="Buscar evento..."></div><select id="eventStatusFilter"><option value="">Todos os status</option><option>Publicado</option><option>Rascunho</option><option>Finalizado</option></select></div>
-          <div id="eventsGrid" class="events-grid"></div>
+          <div class="panel table-panel"><div class="table-wrap"><table id="eventsTable" class="display"><thead><tr><th>Evento</th><th>Data</th><th>Local</th><th>Status</th><th>Inscritos / vagas</th><th>Ações</th></tr></thead><tbody id="eventsBody"></tbody></table></div></div>
         </section>
 
         <section id="page-participants" class="page">
           <div class="page-heading"><div><span class="eyebrow">BASE DE CONTATOS</span><h1>Participantes</h1><p>Consulte e gerencie as pessoas cadastradas.</p></div><button class="btn btn-primary" data-action="new-participant"><i class="bi bi-plus-lg"></i> Novo participante</button></div>
-          <div class="panel table-panel"><div class="panel-heading"><div><h3>Todos os participantes</h3><p>Lista com pesquisa, ordenação e paginação.</p></div></div><div class="table-wrap"><table id="participantsTable" class="display"><thead><tr><th>Participante</th><th>E-mail</th><th>Telefone</th><th>Evento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="participantsBody"></tbody></table></div></div>
+          <div class="panel table-panel"><div class="panel-heading"><div><h3>Todos os participantes</h3><p>Lista com pesquisa, ordenação e paginação.</p></div></div><div class="table-wrap"><table id="participantsTable" class="display"><thead><tr><th>Participante</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Evento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="participantsBody"></tbody></table></div></div>
         </section>
 
         <section id="page-registrations" class="page">
@@ -121,6 +121,7 @@
             <article class="panel settings-card"><span class="settings-icon"><i class="bi bi-palette"></i></span><div><h3>Aparência</h3><p>Escolha entre o tema claro e o tema escuro. Sua preferência fica salva neste navegador.</p></div><label class="switch"><input id="settingsTheme" type="checkbox"><span></span></label></article>
             <article class="panel settings-card"><span class="settings-icon"><i class="bi bi-person-circle"></i></span><div><h3>Perfil do organizador</h3><p>Administrador EventHub<br>admin@eventhub.com</p></div><span class="soft-tag">Administrador</span></article>
             <article class="panel settings-card api-settings"><span class="settings-icon"><i class="bi bi-globe"></i></span><div><h3>Integração API Ninjas</h3><p>Informe sua chave para habilitar a consulta de geocodificação de cidades no cadastro de eventos.</p><div class="api-key-row"><input id="ninjasKey" type="password" placeholder="Insira sua API Key"><button id="saveApiKey" class="btn btn-outline">Salvar chave</button></div><small class="muted">A chave é armazenada apenas no localStorage deste navegador para fins de demonstração.</small></div></article>
+            <article class="panel settings-card api-settings"><span class="settings-icon"><i class="bi bi-cloud-sun"></i></span><div><h3>Integração OpenWeatherMap</h3><p>Informe sua chave para consultar a previsão do tempo no cadastro e nos detalhes dos eventos (previsão disponível para os próximos 5 dias).</p><div class="api-key-row"><input id="weatherKey" type="password" placeholder="Insira sua API Key OpenWeatherMap"><button id="saveWeatherKey" class="btn btn-outline">Salvar chave</button></div><small class="muted">A chave fica no localStorage deste navegador para demonstração acadêmica.</small></div></article>
           </div>
           <div class="panel api-test"><div><h3>Consultar endereço por CEP</h3><p>Teste a integração com a BrasilAPI (API pública).</p></div><div class="api-key-row"><input id="cepInput" inputmode="numeric" maxlength="9" placeholder="Digite um CEP, ex.: 89010-000"><button id="cepSearch" class="btn btn-primary">Consultar CEP</button></div><div id="cepResult" class="api-result"></div></div>
         </section>

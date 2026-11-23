@@ -2,13 +2,13 @@ const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 const money = value => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const today = new Date();
-const isoDate = d => new Date(d).toISOString().slice(0, 10);
+const isoDate = d => {const date=new Date(d);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;};
 const plusDays = n => { const d = new Date(); d.setDate(d.getDate()+n); return isoDate(d); };
 const seed = {
   events: [
-    {id:1,name:"Tech Summit 2026",category:"Tecnologia",date:plusDays(12),time:"09:00",location:"Blumenau, SC",capacity:180,price:49.9,status:"Publicado",description:"Encontro sobre inovação e tecnologia."},
-    {id:2,name:"Design Experience",category:"Design",date:plusDays(24),time:"14:00",location:"Florianópolis, SC",capacity:120,price:35,status:"Publicado",description:"Experiência sobre criatividade e design."},
-    {id:3,name:"Workshop de Empreendedorismo",category:"Negócios",date:plusDays(-5),time:"19:00",location:"Itajaí, SC",capacity:60,price:0,status:"Finalizado",description:"Workshop para novos empreendedores."}
+    {id:1,name:"Tech Summit 2026",category:"Tecnologia",date:plusDays(2),time:"09:00",location:"Centro de Inovação",city:"Blumenau, SC",capacity:180,price:49.9,status:"Publicado",description:"Encontro sobre inovação e tecnologia."},
+    {id:2,name:"Design Experience",category:"Design",date:plusDays(4),time:"14:00",location:"Centro de Convenções",city:"Florianópolis, SC",capacity:120,price:35,status:"Publicado",description:"Experiência sobre criatividade e design."},
+    {id:3,name:"Workshop de Empreendedorismo",category:"Negócios",date:plusDays(-5),time:"19:00",location:"Auditório Municipal",city:"Itajaí, SC",capacity:60,price:0,status:"Finalizado",description:"Workshop para novos empreendedores."}
   ],
   participants: [
     {id:1,name:"Mariana Costa",email:"mariana@email.com",phone:"(47) 99911-2233",eventId:1,status:"Confirmado"},
@@ -37,6 +37,7 @@ let currentPage = "dashboard";
 let editing = null;
 let modalType = null;
 let dataTable = null;
+let eventsTable = null;
 
 function loadDB() {
   try {
@@ -90,12 +91,14 @@ function renderDashboard() {
 }
 function renderEvents() {
   const search=($("#eventSearch")?.value||"").toLowerCase(), filter=$("#eventStatusFilter")?.value||"";
-  const list=db.events.filter(e=>(e.name+" "+e.location+" "+e.category).toLowerCase().includes(search)&&(!filter||e.status===filter));
-  $("#eventsGrid").innerHTML=list.length?list.map((e,i)=>`<article class="event-card"><div class="event-cover cover-${i%3}"><i class="bi ${e.category==="Tecnologia"?"bi-cpu":e.category==="Design"?"bi-brush":"bi-stars"}"></i><span class="status ${statusClass(e.status)}">${e.status}</span></div><div class="event-info"><h3>${escapeHTML(e.name)}</h3><p>${escapeHTML(e.description||"Sem descrição.")}</p><div class="event-meta"><span><i class="bi bi-calendar"></i>${dateBR(e.date)}</span><span><i class="bi bi-geo-alt"></i>${escapeHTML(e.location)}</span></div><div class="event-meta"><span><i class="bi bi-people"></i>${db.registrations.filter(r=>r.eventId===e.id&&r.status!=="Cancelada").length}/${e.capacity}</span><span><i class="bi bi-cash"></i>${money(e.price)}</span></div><div class="event-actions"><button class="small-action" data-edit="event" data-id="${e.id}"><i class="bi bi-pencil"></i> Editar</button><button class="small-action danger" data-delete="event" data-id="${e.id}"><i class="bi bi-trash"></i> Excluir</button></div></div></article>`).join(""):'<div class="panel"><p>Nenhum evento encontrado. Cadastre seu primeiro evento.</p></div>';
+  const list=db.events.filter(e=>(e.name+" "+e.location+" "+(e.city||"")+" "+e.category).toLowerCase().includes(search)&&(!filter||e.status===filter));
+  if(eventsTable){eventsTable.destroy();eventsTable=null;}
+  $("#eventsBody").innerHTML=list.map(e=>`<tr><td><strong>${escapeHTML(e.name)}</strong><br><small>${escapeHTML(e.category||"Evento")}</small></td><td>${dateBR(e.date)} · ${escapeHTML(e.time||"")}</td><td>${escapeHTML([e.location,e.city].filter(Boolean).join(", "))}</td><td><span class="status ${statusClass(e.status)}">${escapeHTML(e.status)}</span></td><td>${db.registrations.filter(r=>r.eventId===e.id&&r.status!=="Cancelada").length} / ${Number(e.capacity)||0}</td><td><button class="small-action" data-view-event="${e.id}">Detalhes</button> <button class="small-action" data-edit="event" data-id="${e.id}">Editar</button> <button class="small-action danger" data-delete="event" data-id="${e.id}">Excluir</button></td></tr>`).join("");
+  if(window.DataTable) eventsTable=new DataTable("#eventsTable",{pageLength:5,order:[],language:{search:"Buscar:",lengthMenu:"Mostrar _MENU_",info:"Mostrando _START_ a _END_ de _TOTAL_",infoEmpty:"Nenhum evento",zeroRecords:"Nenhum evento encontrado",paginate:{first:"Primeira",last:"Última",next:"Próxima",previous:"Anterior"}}});
 }
 function renderParticipants() {
   if(dataTable){dataTable.destroy();dataTable=null;}
-  $("#participantsBody").innerHTML=db.participants.map(p=>`<tr><td><strong>${escapeHTML(p.name)}</strong></td><td>${escapeHTML(p.email)}</td><td>${escapeHTML(p.phone||"—")}</td><td>${escapeHTML(eventName(p.eventId))}</td><td><span class="status ${p.status==="Pendente"?"pending":""}">${p.status}</span></td><td><button class="small-action" data-edit="participant" data-id="${p.id}">Editar</button> <button class="small-action danger" data-delete="participant" data-id="${p.id}">Excluir</button></td></tr>`).join("");
+  $("#participantsBody").innerHTML=db.participants.map(p=>`<tr><td><strong>${escapeHTML(p.name)}</strong></td><td>${escapeHTML(p.cpf||"—")}</td><td>${escapeHTML(p.email)}</td><td>${escapeHTML(p.phone||"—")}</td><td>${escapeHTML(eventName(p.eventId))}</td><td><span class="status ${p.status==="Pendente"?"pending":""}">${escapeHTML(p.status)}</span></td><td><button class="small-action" data-edit="participant" data-id="${p.id}">Editar</button> <button class="small-action danger" data-delete="participant" data-id="${p.id}">Excluir</button></td></tr>`).join("");
   if(window.DataTable) dataTable=new DataTable("#participantsTable",{pageLength:5,order:[],language:{search:"Buscar:",lengthMenu:"Mostrar _MENU_",info:"Mostrando _START_ a _END_ de _TOTAL_",infoEmpty:"Nenhum registro",zeroRecords:"Nenhum participante encontrado",paginate:{first:"Primeira",last:"Última",next:"Próxima",previous:"Anterior"}}});
 }
 function renderRegistrations() {
@@ -118,17 +121,17 @@ function renderReports() {
   $("#reportBody").innerHTML=db.events.map(e=>{const n=active.filter(r=>r.eventId===e.id).length;return `<tr><td><strong>${escapeHTML(e.name)}</strong></td><td>${e.capacity}</td><td>${n}</td><td>${e.capacity?Math.round(n/e.capacity*100):0}%</td><td>${money(n*e.price)}</td></tr>`}).join("");
 }
 function escapeHTML(value) { return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-const selectOptions=(items,valueFn,labelFn,empty="Selecione")=>`<option value="">${empty}</option>`+items.map(x=>`<option value="${valueFn(x)}">${escapeHTML(labelFn(x))}</option>`).join("");
+const selectOptions=(items,valueFn,labelFn,empty="Selecione",selectedValue=null)=>`<option value="">${empty}</option>`+items.map(x=>`<option value="${valueFn(x)}" ${selectedValue!==null&&Number(valueFn(x))===Number(selectedValue)?"selected":""}>${escapeHTML(labelFn(x))}</option>`).join("");
 function field(label,name,value="",type="text",full=false,extra="") {return `<div class="field ${full?"full":""}"><label for="f_${name}">${label}</label><input id="f_${name}" name="${name}" type="${type}" value="${escapeHTML(value)}" ${extra}></div>`;}
-function selectField(label,name,items,value,labelFn,full=false) {return `<div class="field ${full?"full":""}"><label for="f_${name}">${label}</label><select id="f_${name}" name="${name}" required>${selectOptions(items,x=>x.id,labelFn)}${value?`</select>`:"</select>"}</div>`;}
+function selectField(label,name,items,value,labelFn,full=false) {return `<div class="field ${full?"full":""}"><label for="f_${name}">${label}</label><select id="f_${name}" name="${name}" required>${selectOptions(items,x=>x.id,labelFn,"Selecione",value)}</select></div>`;}
 function openModal(type,id=null) {
   modalType=type; editing=id; const item=id?getCollection(type).find(x=>x.id===id):{};
   const titles={event:id?"Editar evento":"Novo evento",participant:id?"Editar participante":"Novo participante",registration:"Nova inscrição",speaker:id?"Editar palestrante":"Novo palestrante",session:id?"Editar atividade":"Nova atividade"};
   $("#modalTitle").textContent=titles[type]; let html="";
   if(type==="event"){
-    html=field("Nome do evento","name",item.name||"", "text",true,"required")+`<div class="field"><label>Categoria</label><select name="category"><option>Tecnologia</option><option>Design</option><option>Negócios</option><option>Educação</option><option>Entretenimento</option><option>Outro</option></select></div>`+field("Data","date",item.date||plusDays(15),"date")+field("Horário","time",item.time||"09:00","time")+field("Local","location",item.location||"","text",true,"required")+field("Capacidade","capacity",item.capacity||100,"number",false,'min="1" required')+field("Valor (R$)","price",item.price??0,"number",false,'min="0" step="0.01"')+`<div class="field"><label>Status</label><select name="status"><option>Publicado</option><option>Rascunho</option><option>Finalizado</option></select></div><div class="field full"><label>Descrição</label><textarea name="description">${escapeHTML(item.description||"")}</textarea></div><div class="field full"><label>Consultar cidade (API Ninjas)</label><div class="api-key-row"><input id="cityLookup" placeholder="Nome da cidade"><button type="button" id="cityLookupBtn" class="btn btn-outline">Consultar</button></div><small id="cityLookupResult" class="muted">Opcional: exige chave API Ninjas em Configurações.</small></div>`;
+    html=field("Nome do evento","name",item.name||"", "text",true,"required")+`<div class="field"><label>Categoria</label><select name="category"><option>Tecnologia</option><option>Design</option><option>Negócios</option><option>Educação</option><option>Entretenimento</option><option>Outro</option></select></div>`+field("Data","date",item.date||plusDays(15),"date",false,"required")+field("Horário","time",item.time||"09:00","time",false,"required")+field("Local / endereço","location",item.location||"","text",false,"required")+field("Cidade","city",item.city||item.location||"","text",false,'required placeholder="Ex.: Blumenau, SC"')+field("Capacidade","capacity",item.capacity||100,"number",false,'min="1" required')+field("Valor (R$)","price",item.price??0,"number",false,'min="0" step="0.01"')+`<div class="field"><label>Status</label><select name="status"><option>Publicado</option><option>Rascunho</option><option>Finalizado</option></select></div><div class="field full"><label>Descrição</label><textarea name="description">${escapeHTML(item.description||"")}</textarea></div><div class="field full"><label>Localização e previsão do tempo</label><div class="api-key-row"><button type="button" id="weatherLookupBtn" class="btn btn-outline"><i class="bi bi-cloud-sun"></i> Consultar clima da cidade</button></div><small id="weatherResult" class="muted">Consulta API Ninjas + OpenWeatherMap; configure as chaves em Configurações.</small></div><input type="hidden" name="latitude" value="${escapeHTML(item.latitude??"")}"><input type="hidden" name="longitude" value="${escapeHTML(item.longitude??"")}"><input type="hidden" name="weather" value='${escapeHTML(item.weather?JSON.stringify(item.weather):"")}'>`;
   } else if(type==="participant"){
-    html=field("Nome completo","name",item.name||"","text",true,"required")+field("E-mail","email",item.email||"","email",false,"required")+field("Telefone","phone",item.phone||"")+selectField("Evento","eventId",db.events,item.eventId,e=>e.name,true)+`<div class="field"><label>Status</label><select name="status"><option>Confirmado</option><option>Pendente</option></select></div>`;
+    html=field("Nome completo","name",item.name||"","text",true,"required")+field("CPF","cpf",item.cpf||"","text",false,'inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required')+field("E-mail","email",item.email||"","email",false,"required")+field("Telefone","phone",item.phone||"")+selectField("Evento","eventId",db.events,item.eventId,e=>e.name,true)+`<div class="field"><label>Status</label><select name="status"><option>Confirmado</option><option>Pendente</option></select></div>`;
   } else if(type==="registration"){
     html=selectField("Participante","participantId",db.participants,null,p=>p.name,true)+selectField("Evento","eventId",db.events,null,e=>e.name,true)+field("Data da inscrição","date",isoDate(today),"date")+`<div class="field full"><label>Status</label><select name="status"><option>Confirmada</option><option>Pendente</option></select></div>`;
   } else if(type==="speaker"){
@@ -141,19 +144,40 @@ function openModal(type,id=null) {
   if(type==="event"&&item.status) form.elements.status.value=item.status;
   if(type==="participant"&&item.status) form.elements.status.value=item.status;
   $("#modalBackdrop").classList.remove("hidden");
-  $("#modalFields").querySelectorAll("input,select,textarea").forEach(el=>el.addEventListener("input",()=>{}));
+  if(type==="event"&&item.weather) $("#weatherResult").textContent=`Previsão salva: ${item.weather.description}, ${item.weather.min}°C a ${item.weather.max}°C.`;
+}
+function showEventDetails(id){
+  const e=db.events.find(item=>item.id===id); if(!e)return;
+  modalType="details"; editing=null; $("#modalTitle").textContent="Detalhes do evento";
+  const regs=db.registrations.filter(r=>r.eventId===id&&r.status!=="Cancelada");
+  const weather=e.weather?`<p><strong>Clima:</strong> ${escapeHTML(e.weather.description)} · ${e.weather.min}°C a ${e.weather.max}°C (previsão para ${dateBR(e.weather.date)})</p>`:'<p><strong>Clima:</strong> sem previsão salva. Edite o evento e consulte o clima para carregar os dados.</p>';
+  $("#modalFields").innerHTML=`<div class="field full"><h3>${escapeHTML(e.name)}</h3><p>${escapeHTML(e.description||"Sem descrição.")}</p><p><strong>Data:</strong> ${dateBR(e.date)} às ${escapeHTML(e.time||"—")}</p><p><strong>Local:</strong> ${escapeHTML([e.location,e.city].filter(Boolean).join(", "))}</p><p><strong>Vagas:</strong> ${regs.length} de ${Number(e.capacity)||0} · ${escapeHTML(e.status)}</p><p><strong>Palestrantes:</strong> ${db.speakers.filter(s=>s.eventId===id).map(s=>escapeHTML(s.name)).join(", ")||"A definir"}</p>${weather}</div>`;
+  $("#modalForm").querySelector(".modal-actions").classList.add("hidden"); $("#modalBackdrop").classList.remove("hidden");
 }
 function getCollection(type){return db[({event:"events",participant:"participants",registration:"registrations",speaker:"speakers",session:"sessions"})[type]];}
-function closeModal(){ $("#modalBackdrop").classList.add("hidden"); $("#modalForm").reset(); editing=null; modalType=null; }
+function closeModal(){ $("#modalBackdrop").classList.add("hidden"); $("#modalForm").reset(); $("#modalForm").querySelector(".modal-actions").classList.remove("hidden"); editing=null; modalType=null; }
 function saveModal(event) {
   event.preventDefault(); const form=new FormData(event.currentTarget); const data=Object.fromEntries(form.entries());
   const numeric=["capacity","price","eventId","participantId","speakerId"]; numeric.forEach(k=>{if(data[k]!==undefined)data[k]=data[k]===""?null:Number(data[k]);});
-  if(modalType==="event"&&(!data.name||!data.location||!data.date)){toast("Preencha os campos obrigatórios.",true);return;}
+  if(modalType==="event"&&(!data.name||!data.location||!data.city||!data.date||!data.capacity||Number(data.capacity)<1)){toast("Preencha nome, data, local, cidade e uma capacidade válida.",true);return;}
+  if(modalType==="participant"){
+    const cpf=data.cpf.replace(/\D/g,"");
+    if(cpf.length!==11){toast("Informe um CPF com 11 dígitos.",true);return;}
+    if(db.participants.some(p=>p.cpf&&p.cpf.replace(/\D/g,"")===cpf&&p.id!==editing)){toast("Já existe um participante cadastrado com este CPF.",true);return;}
+    if(!editing&&data.eventId){const eventRecord=db.events.find(e=>e.id===data.eventId);if(eventRecord&&db.registrations.filter(r=>r.eventId===eventRecord.id&&r.status!=="Cancelada").length>=Number(eventRecord.capacity)){toast("Este evento atingiu a capacidade máxima.",true);return;}}
+    data.cpf=cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4");
+  }
   if(modalType==="registration"){
     if(!data.participantId||!data.eventId){toast("Selecione participante e evento.",true);return;}
     const duplicate=db.registrations.some(r=>r.participantId===data.participantId&&r.eventId===data.eventId&&r.status!=="Cancelada");
     if(duplicate){toast("Este participante já possui inscrição ativa neste evento.",true);return;}
+    const eventRecord=db.events.find(e=>e.id===data.eventId);
+    if(eventRecord&&db.registrations.filter(r=>r.eventId===eventRecord.id&&r.status!=="Cancelada").length>=Number(eventRecord.capacity)){toast("Este evento atingiu a capacidade máxima.",true);return;}
     data.checked=false;
+  }
+  if(modalType==="event"){
+    data.latitude=data.latitude===""?null:Number(data.latitude); data.longitude=data.longitude===""?null:Number(data.longitude);
+    try{data.weather=data.weather?JSON.parse(data.weather):null;}catch{data.weather=null;}
   }
   const collection=getCollection(modalType);
   if(editing){const index=collection.findIndex(x=>x.id===editing);collection[index]={...collection[index],...data};toast("Informações atualizadas com sucesso.");}
@@ -166,7 +190,7 @@ function deleteItem(type,id) {
   const collection=getCollection(type); const index=collection.findIndex(x=>x.id===id);
   if(index<0){toast("Registro não encontrado.",true);return;}
   collection.splice(index,1);
-  if(type==="event"){db.registrations=db.registrations.filter(r=>r.eventId!==id);db.sessions=db.sessions.filter(s=>s.eventId!==id);}
+  if(type==="event"){db.registrations=db.registrations.filter(r=>r.eventId!==id);db.sessions=db.sessions.filter(s=>s.eventId!==id);db.speakers=db.speakers.filter(s=>s.eventId!==id);}
   if(type==="participant")db.registrations=db.registrations.filter(r=>r.participantId!==id);
   saveDB();renderAll();toast("Registro excluído.");
 }
@@ -176,7 +200,7 @@ function exportCSV(){
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="relatorio-eventhub.csv";a.click();URL.revokeObjectURL(a.href);toast("Relatório exportado.");
 }
 
-$("#loginForm").addEventListener("submit",e=>{e.preventDefault();$("#loginScreen").classList.add("hidden");$("#appShell").classList.remove("hidden");localStorage.setItem("eventhub_logged","true");showPage("dashboard");});
+$("#loginForm").addEventListener("submit",e=>{e.preventDefault();const email=$("#loginEmail").value.trim().toLowerCase(),password=$("#loginPassword").value;if(email!=="admin@eventhub.com"||password!=="123456"){toast("E-mail ou senha incorretos. Use as credenciais demonstrativas informadas.",true);return;}$("#loginScreen").classList.add("hidden");$("#appShell").classList.remove("hidden");localStorage.setItem("eventhub_logged","true");showPage("dashboard");});
 $(".toggle-password").addEventListener("click",()=>{const input=$("#loginPassword"),show=input.type==="password";input.type=show?"text":"password";$(".toggle-password").innerHTML=show?'<i class="bi bi-eye-slash"></i>':'<i class="bi bi-eye"></i>';});
 $("#logoutBtn").addEventListener("click",()=>{localStorage.removeItem("eventhub_logged");$("#appShell").classList.add("hidden");$("#loginScreen").classList.remove("hidden");toast("Você saiu do sistema.");});
 $("#themeToggle").addEventListener("click",()=>applyTheme(!document.body.classList.contains("dark")));
@@ -185,6 +209,7 @@ $("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.toggle("op
 $("#closeModal").addEventListener("click",closeModal);$("#cancelModal").addEventListener("click",closeModal);$("#modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal();});
 $("#modalForm").addEventListener("submit",saveModal);
 document.addEventListener("click",e=>{
+  const detail=e.target.closest("[data-view-event]");if(detail){showEventDetails(Number(detail.dataset.viewEvent));return;}
   const page=e.target.closest("[data-page]");if(page){showPage(page.dataset.page);return;}
   const action=e.target.closest("[data-action]");if(action){openModal(({ "new-event":"event","new-participant":"participant","new-registration":"registration","new-speaker":"speaker","new-session":"session"})[action.dataset.action]);return;}
   const edit=e.target.closest("[data-edit]");if(edit){openModal(edit.dataset.edit,Number(edit.dataset.id));return;}
@@ -195,10 +220,12 @@ document.addEventListener("click",e=>{
 $("#eventSearch").addEventListener("input",renderEvents);$("#eventStatusFilter").addEventListener("change",renderEvents);
 $("#exportReport").addEventListener("click",exportCSV);
 $("#saveApiKey").addEventListener("click",()=>{const key=$("#ninjasKey").value.trim();if(!key){toast("Informe uma chave válida.",true);return;}localStorage.setItem("eventhub_ninjas_key",key);$("#ninjasKey").value="";toast("Chave salva neste navegador.");});
+$("#saveWeatherKey").addEventListener("click",()=>{const key=$("#weatherKey").value.trim();if(!key){toast("Informe uma chave OpenWeatherMap válida.",true);return;}localStorage.setItem("eventhub_weather_key",key);$("#weatherKey").value="";toast("Chave OpenWeatherMap salva neste navegador.");});
 $("#cepSearch").addEventListener("click",async()=>{const out=$("#cepResult");out.textContent="Consultando...";try{const d=await Integrations.buscarCep($("#cepInput").value);out.textContent=`${d.street||"Logradouro não informado"}, ${d.neighborhood||""} - ${d.city}/${d.state}`;}catch(e){out.textContent=e.message;toast(e.message,true);}});
-document.addEventListener("click",async e=>{if(e.target.id==="cityLookupBtn"){const city=$("#cityLookup").value.trim(),out=$("#cityLookupResult");if(!city){out.textContent="Digite uma cidade.";return;}out.textContent="Consultando API Ninjas...";try{const result=await Integrations.buscarCidadeNinjas(city);out.textContent=result.length?`Localização encontrada: latitude ${result[0].latitude}, longitude ${result[0].longitude}.`:"Nenhum resultado encontrado.";}catch(err){out.textContent=err.message;}}});
+document.addEventListener("click",async e=>{if(e.target.closest("#weatherLookupBtn")){const city=$("#f_city").value.trim(),date=$("#f_date").value,out=$("#weatherResult");if(!city||!date){out.textContent="Preencha a cidade e a data do evento.";return;}out.textContent="Consultando localização e previsão...";try{const places=await Integrations.buscarCidadeNinjas(city);if(!places.length)throw new Error("Cidade não encontrada pela API Ninjas.");const place=places[0],weather=await Integrations.buscarClima(place.latitude,place.longitude,date);$("#modalForm").elements.latitude.value=place.latitude;$("#modalForm").elements.longitude.value=place.longitude;$("#modalForm").elements.weather.value=JSON.stringify(weather);out.textContent=`${place.state||city}, ${place.country||""} · ${weather.description}, ${weather.min}°C a ${weather.max}°C em ${dateBR(date)} (lat. ${place.latitude}, long. ${place.longitude}).`;}catch(err){out.textContent=err.message;toast(err.message,true);}}});
 $("#todayLabel").textContent=today.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
 applyTheme(localStorage.getItem("eventhub_theme")==="dark");
 if(localStorage.getItem("eventhub_ninjas_key"))$("#ninjasKey").placeholder="Chave salva (digite para substituir)";
+if(localStorage.getItem("eventhub_weather_key"))$("#weatherKey").placeholder="Chave salva (digite para substituir)";
 if(localStorage.getItem("eventhub_logged")==="true"){ $("#loginScreen").classList.add("hidden");$("#appShell").classList.remove("hidden"); }
 renderAll();

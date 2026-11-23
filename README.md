@@ -1,40 +1,39 @@
-﻿# EventHub
+# EventHub
 
-Sistema web para gestão de eventos, desenvolvido como projeto acadêmico com HTML, CSS e JavaScript.
+Aplicação web acadêmica para organizar eventos, participantes, inscrições, palestrantes e programação em uma interface única.
 
-## Objetivo
+## Executar
 
-Centralizar a criação de eventos, inscrições, participantes e palestrantes em uma única interface, reduzindo o uso de planilhas e controles dispersos.
+1. Clone ou baixe este repositório.
+2. Abra a pasta em um servidor estático, como Live Server no VS Code, ou publique no GitHub Pages.
+3. Entre com o usuário demonstrativo `admin@eventhub.com` e a senha `123456`.
+
+O projeto não exige instalação de dependências. Bootstrap Icons, DataTables e jQuery são carregados por CDN, então o navegador precisa de internet.
 
 ## Funcionalidades
 
-- Login demonstrativo com opção para mostrar ou ocultar a senha.
-- Dashboard com indicadores de eventos e inscrições.
-- Cadastro, edição, pesquisa e exclusão de eventos.
-- Gerenciamento de participantes, inscrições e check-in com DataTables.
-- Cadastro de palestrantes e programação.
-- Relatórios com exportação CSV.
-- Tema claro e escuro salvo no `localStorage`.
-- Consulta de CEP pela BrasilAPI.
-- Consulta de geocodificação de cidades pela API Ninjas.
-- Persistência de dados no navegador com `localStorage`.
+- Login demonstrativo com mostrar/ocultar senha.
+- Dashboard com indicadores, inscrições, próximos eventos e atividade recente.
+- Cadastro, edição, pesquisa, filtros, detalhes e exclusão de eventos.
+- DataTables para eventos e participantes, com pesquisa, ordenação e paginação.
+- Cadastro de participantes com CPF, e-mail e telefone; impede CPF e inscrições duplicadas.
+- Controle de inscrições, capacidade, cancelamento e check-in.
+- Cadastro e gestão de palestrantes e programação.
+- Relatórios com ocupação, check-ins, receita estimada e exportação CSV.
+- Tema claro/escuro persistido no `localStorage`.
+- Integrações BrasilAPI para CEP, API Ninjas para geocodificação e OpenWeatherMap para previsão.
+- Dados demonstrativos persistidos no `localStorage` do navegador.
 
-## Tecnologias
+## Configurar APIs
 
-HTML5, CSS3, JavaScript, Bootstrap Icons, DataTables, BrasilAPI e API Ninjas.
+Abra **Configurações** no sistema e salve as chaves:
 
-## Executar localmente
+- **API Ninjas:** crie uma chave em [api-ninjas.com](https://api-ninjas.com/). É usada para encontrar as coordenadas da cidade.
+- **OpenWeatherMap:** crie uma chave em [openweathermap.org](https://openweathermap.org/api). É usada para consultar previsão do tempo.
 
-1. Clone este repositório.
-2. Abra a pasta no VS Code e inicie um servidor local (por exemplo, Live Server).
-3. Acesse `index.html` pelo endereço local.
-4. Credenciais demonstrativas: `admin@eventhub.com` / `123456`.
+No cadastro/edição de evento, preencha cidade e data e selecione **Consultar clima da cidade**. A previsão é exibida no formulário e salva junto ao evento para consulta em **Detalhes**. A API gratuita de previsão de 5 dias oferece dados em intervalos de 3 horas; por isso o evento precisa ocorrer nos próximos 5 dias para retornar a previsão. A consulta de CEP não exige chave.
 
-As bibliotecas visuais são carregadas por CDN, então a conexão com a internet é necessária.
-
-## Configuração da API Ninjas
-
-Crie uma chave em [API Ninjas](https://api-ninjas.com/), abra Configurações no sistema e informe a chave. Para este MVP, a chave fica no `localStorage` do navegador. Em produção, chamadas que usam chave privada devem passar por um backend.
+As chaves ficam no `localStorage` para facilitar a demonstração acadêmica. Em produção, chaves privadas devem ficar em um backend e não no navegador.
 
 ## Estrutura
 
@@ -46,9 +45,10 @@ Crie uma chave em [API Ninjas](https://api-ninjas.com/), abra Configurações no
 ├── js/
 │   ├── app.js
 │   └── integrations.js
+├── .gitignore
 └── README.md
 ```
 
-## Escopo e limitações
+## Limitações
 
-Este projeto é um MVP front-end. O login é demonstrativo e os dados ficam no navegador; não há backend, banco de dados ou autenticação real. A previsão do tempo via OpenWeatherMap prevista na proposta acadêmica ainda precisa ser integrada.
+Este é um MVP front-end: login demonstrativo, dados locais no navegador e sem backend ou autenticação real. O CPF tem validação de tamanho e duplicidade, mas a validação matemática dos dígitos verificadores ainda não foi implementada. Os dados locais não são compartilhados entre dispositivos ou usuários.
