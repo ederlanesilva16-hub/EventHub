@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EventHub - Sistema de gestão de eventos">
+  <title>EventHub | Gestão de eventos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-art">
+      <div class="brand brand-light"><span class="brand-mark"><i class="bi bi-calendar-event"></i></span><span>Event<span>Hub</span></span></div>
+      <div class="login-art-copy">
+        <span class="eyebrow">ORGANIZE. GERENCIE. ACONTEÇA.</span>
+        <h1>Seus eventos,<br>em um só lugar.</h1>
+        <p>Uma forma mais simples de planejar experiências memoráveis.</p>
+      </div>
+      <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+      <div class="floating-card"><i class="bi bi-ticket-perforated"></i><div><strong>Inscrições organizadas</strong><small>Controle em tempo real</small></div></div>
+    </div>
+    <div class="login-panel">
+      <form id="loginForm" class="login-form">
+        <div class="brand login-brand"><span class="brand-mark"><i class="bi bi-calendar-event"></i></span><span>Event<span>Hub</span></span></div>
+        <span class="eyebrow">BEM-VINDO DE VOLTA</span>
+        <h2>Acesse sua conta</h2>
+        <p class="muted">Entre para gerenciar seus eventos.</p>
+        <label for="loginEmail">E-mail</label>
+        <div class="input-icon"><i class="bi bi-envelope"></i><input id="loginEmail" type="email" value="admin@eventhub.com" required placeholder="seu@email.com"></div>
+        <label for="loginPassword">Senha</label>
+        <div class="input-icon"><i class="bi bi-lock"></i><input id="loginPassword" type="password" value="123456" required minlength="4"><button class="toggle-password" type="button" aria-label="Mostrar senha"><i class="bi bi-eye"></i></button></div>
+        <button class="btn btn-primary btn-full" type="submit">Entrar <i class="bi bi-arrow-right"></i></button>
+        <div class="demo-hint"><i class="bi bi-info-circle"></i> Demonstração: admin@eventhub.com / 123456</div>
+      </form>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand sidebar-brand"><span class="brand-mark"><i class="bi bi-calendar-event"></i></span><span>Event<span>Hub</span></span></div>
+      <div class="workspace-label">MENU PRINCIPAL</div>
+      <nav class="nav-menu">
+        <button class="nav-link active" data-page="dashboard"><i class="bi bi-grid-1x2"></i> Visão geral</button>
+        <button class="nav-link" data-page="events"><i class="bi bi-calendar3"></i> Eventos</button>
+        <button class="nav-link" data-page="participants"><i class="bi bi-people"></i> Participantes</button>
+        <button class="nav-link" data-page="registrations"><i class="bi bi-ticket-perforated"></i> Inscrições</button>
+        <button class="nav-link" data-page="speakers"><i class="bi bi-mic"></i> Palestrantes</button>
+        <button class="nav-link" data-page="schedule"><i class="bi bi-clock-history"></i> Programação</button>
+        <button class="nav-link" data-page="reports"><i class="bi bi-bar-chart"></i> Relatórios</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-link" data-page="settings"><i class="bi bi-gear"></i> Configurações</button>
+        <div class="sidebar-user"><div class="avatar">AD</div><div><strong>Administrador</strong><small>admin@eventhub.com</small></div><button id="logoutBtn" title="Sair"><i class="bi bi-box-arrow-right"></i></button></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button id="mobileMenu" class="icon-btn mobile-menu" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <div class="breadcrumb">Workspace <i class="bi bi-chevron-right"></i> <strong id="pageCrumb">Visão geral</strong></div>
+        <div class="topbar-actions"><span class="today-label" id="todayLabel"></span><button id="themeToggle" class="icon-btn" title="Alternar tema"><i class="bi bi-moon-stars"></i></button><div class="avatar avatar-top">AD</div></div>
+      </header>
+
+      <div class="content">
+        <section id="page-dashboard" class="page active">
+          <div class="page-heading"><div><span class="eyebrow">PAINEL DE CONTROLE</span><h1>Visão geral</h1><p>Acompanhe o desempenho dos seus eventos.</p></div><button class="btn btn-primary" data-action="new-event"><i class="bi bi-plus-lg"></i> Criar evento</button></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span>Eventos cadastrados</span><span class="stat-icon purple"><i class="bi bi-calendar-event"></i></span></div><strong id="statEvents">0</strong><small class="positive"><i class="bi bi-arrow-up-right"></i> Seus eventos na plataforma</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Participantes</span><span class="stat-icon blue"><i class="bi bi-people"></i></span></div><strong id="statParticipants">0</strong><small class="positive">Pessoas cadastradas</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Inscrições confirmadas</span><span class="stat-icon green"><i class="bi bi-ticket-perforated"></i></span></div><strong id="statRegistrations">0</strong><small class="positive">Inscrições ativas</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Arrecadação prevista</span><span class="stat-icon orange"><i class="bi bi-currency-dollar"></i></span></div><strong id="statRevenue">R$ 0</strong><small class="positive">Com base nas inscrições</small></article>
+          </div>
+          <div class="dashboard-grid">
+            <article class="panel chart-panel"><div class="panel-heading"><div><h3>Visão de inscrições</h3><p>Distribuição de inscrições por evento</p></div><span class="soft-tag">Geral</span></div><div id="registrationChart" class="bar-chart"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h3>Próximos eventos</h3><p>Fique de olho na agenda</p></div><button class="text-btn" data-page="events">Ver todos</button></div><div id="upcomingList" class="upcoming-list"></div></article>
+          </div>
+          <article class="panel"><div class="panel-heading"><div><h3>Atividade recente</h3><p>Últimos eventos cadastrados</p></div><button class="text-btn" data-page="events">Gerenciar eventos</button></div><div class="table-wrap"><table class="simple-table"><thead><tr><th>Evento</th><th>Data</th><th>Local</th><th>Status</th></tr></thead><tbody id="recentEvents"></tbody></table></div></article>
+        </section>
+
+        <section id="page-events" class="page">
+          <div class="page-heading"><div><span class="eyebrow">GERENCIAMENTO</span><h1>Eventos</h1><p>Crie, edite e acompanhe seus eventos.</p></div><button class="btn btn-primary" data-action="new-event"><i class="bi bi-plus-lg"></i> Novo evento</button></div>
+          <div class="filter-row"><div class="search-box"><i class="bi bi-search"></i><input id="eventSearch" placeholder="Buscar evento..."></div><select id="eventStatusFilter"><option value="">Todos os status</option><option>Publicado</option><option>Rascunho</option><option>Finalizado</option></select></div>
+          <div id="eventsGrid" class="events-grid"></div>
+        </section>
+
+        <section id="page-participants" class="page">
+          <div class="page-heading"><div><span class="eyebrow">BASE DE CONTATOS</span><h1>Participantes</h1><p>Consulte e gerencie as pessoas cadastradas.</p></div><button class="btn btn-primary" data-action="new-participant"><i class="bi bi-plus-lg"></i> Novo participante</button></div>
+          <div class="panel table-panel"><div class="panel-heading"><div><h3>Todos os participantes</h3><p>Lista com pesquisa, ordenação e paginação.</p></div></div><div class="table-wrap"><table id="participantsTable" class="display"><thead><tr><th>Participante</th><th>E-mail</th><th>Telefone</th><th>Evento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="participantsBody"></tbody></table></div></div>
+        </section>
+
+        <section id="page-registrations" class="page">
+          <div class="page-heading"><div><span class="eyebrow">CONTROLE DE ACESSO</span><h1>Inscrições</h1><p>Gerencie inscrições e confirme a presença no evento.</p></div><button class="btn btn-primary" data-action="new-registration"><i class="bi bi-plus-lg"></i> Nova inscrição</button></div>
+          <div class="stats-grid compact-stats"><article class="stat-card"><span>Total de inscrições</span><strong id="regTotal">0</strong></article><article class="stat-card"><span>Presentes</span><strong id="regPresent">0</strong></article><article class="stat-card"><span>Pendentes</span><strong id="regPending">0</strong></article></div>
+          <div class="panel table-panel"><div class="table-wrap"><table class="simple-table"><thead><tr><th>Participante</th><th>Evento</th><th>Data da inscrição</th><th>Status</th><th>Check-in</th><th>Ações</th></tr></thead><tbody id="registrationsBody"></tbody></table></div></div>
+        </section>
+
+        <section id="page-speakers" class="page">
+          <div class="page-heading"><div><span class="eyebrow">CONVIDADOS</span><h1>Palestrantes</h1><p>Organize os convidados e suas apresentações.</p></div><button class="btn btn-primary" data-action="new-speaker"><i class="bi bi-plus-lg"></i> Novo palestrante</button></div>
+          <div id="speakersGrid" class="speakers-grid"></div>
+        </section>
+
+        <section id="page-schedule" class="page">
+          <div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Programação</h1><p>Planeje horários, atividades e palestras.</p></div><button class="btn btn-primary" data-action="new-session"><i class="bi bi-plus-lg"></i> Adicionar atividade</button></div>
+          <div class="panel"><div class="panel-heading"><div><h3>Agenda de atividades</h3><p>Programação cadastrada nos eventos.</p></div></div><div id="scheduleList" class="schedule-list"></div></div>
+        </section>
+
+        <section id="page-reports" class="page">
+          <div class="page-heading"><div><span class="eyebrow">DESEMPENHO</span><h1>Relatórios</h1><p>Indicadores para acompanhar os resultados.</p></div><button id="exportReport" class="btn btn-outline"><i class="bi bi-download"></i> Exportar CSV</button></div>
+          <div class="stats-grid"><article class="stat-card"><span>Taxa de ocupação média</span><strong id="occupancyRate">0%</strong><small>Inscrições / capacidade</small></article><article class="stat-card"><span>Check-ins realizados</span><strong id="checkinCount">0</strong><small>Participantes presentes</small></article><article class="stat-card"><span>Eventos publicados</span><strong id="publishedCount">0</strong><small>Disponíveis para inscrição</small></article><article class="stat-card"><span>Receita estimada</span><strong id="reportRevenue">R$ 0</strong><small>Inscrições confirmadas</small></article></div>
+          <div class="panel"><div class="panel-heading"><div><h3>Resumo por evento</h3><p>Capacidade e inscrições de cada evento.</p></div></div><div class="table-wrap"><table class="simple-table"><thead><tr><th>Evento</th><th>Capacidade</th><th>Inscritos</th><th>Ocupação</th><th>Receita</th></tr></thead><tbody id="reportBody"></tbody></table></div></div>
+        </section>
+
+        <section id="page-settings" class="page">
+          <div class="page-heading"><div><span class="eyebrow">PREFERÊNCIAS</span><h1>Configurações</h1><p>Personalize sua experiência no EventHub.</p></div></div>
+          <div class="settings-grid">
+            <article class="panel settings-card"><span class="settings-icon"><i class="bi bi-palette"></i></span><div><h3>Aparência</h3><p>Escolha entre o tema claro e o tema escuro. Sua preferência fica salva neste navegador.</p></div><label class="switch"><input id="settingsTheme" type="checkbox"><span></span></label></article>
+            <article class="panel settings-card"><span class="settings-icon"><i class="bi bi-person-circle"></i></span><div><h3>Perfil do organizador</h3><p>Administrador EventHub<br>admin@eventhub.com</p></div><span class="soft-tag">Administrador</span></article>
+            <article class="panel settings-card api-settings"><span class="settings-icon"><i class="bi bi-globe"></i></span><div><h3>Integração API Ninjas</h3><p>Informe sua chave para habilitar a consulta de geocodificação de cidades no cadastro de eventos.</p><div class="api-key-row"><input id="ninjasKey" type="password" placeholder="Insira sua API Key"><button id="saveApiKey" class="btn btn-outline">Salvar chave</button></div><small class="muted">A chave é armazenada apenas no localStorage deste navegador para fins de demonstração.</small></div></article>
+          </div>
+          <div class="panel api-test"><div><h3>Consultar endereço por CEP</h3><p>Teste a integração com a BrasilAPI (API pública).</p></div><div class="api-key-row"><input id="cepInput" inputmode="numeric" maxlength="9" placeholder="Digite um CEP, ex.: 89010-000"><button id="cepSearch" class="btn btn-primary">Consultar CEP</button></div><div id="cepResult" class="api-result"></div></div>
+        </section>
+      </div>
+      <footer class="footer"><span>© 2026 EventHub. Projeto acadêmico demonstrativo.</span><span>Feito para simplificar seus eventos <i class="bi bi-heart-fill"></i></span></footer>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden"><div class="modal" role="dialog" aria-modal="true"><div class="modal-header"><div><span class="eyebrow">EVENTHUB</span><h2 id="modalTitle">Novo cadastro</h2></div><button id="closeModal" class="icon-btn"><i class="bi bi-x-lg"></i></button></div><form id="modalForm"><div id="modalFields" class="modal-fields"></div><div class="modal-actions"><button type="button" id="cancelModal" class="btn btn-outline">Cancelar</button><button type="submit" class="btn btn-primary">Salvar informações</button></div></form></div></div>
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+  <script src="js/integrations.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
